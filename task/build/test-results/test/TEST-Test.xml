@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Test" tests="1" skipped="0" failures="0" errors="0" timestamp="2019-12-10T10:34:46" hostname="DE-MAC-104.local" time="0.073">
+  <properties/>
+  <testcase name="start" classname="Test" time="0.073"/>
+  <system-out><![CDATA[?[1;31m
+Start test 1?[0m
+>100 + 200 - 300
+0
+>/exit
+Bye!
+?[1;31m
+Start test 2?[0m
+>4 + 6 - 8
+2
+>
+>
+>2 - 3 - 4
+-5
+>
+>8 + 7 - 4
+11
+>/exit
+Bye!
+?[1;31m
+Start test 3?[0m
+>abc
+Invalid expression
+>123+
+Invalid expression
+>+15
+15
+>18 22
+Invalid expression
+>
+>-22
+-22
+>22-
+Invalid expression
+>/exit
+Bye!
+?[1;31m
+Start test 4?[0m
+>/go
+Unknown command
+>/exit
+Bye!
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
