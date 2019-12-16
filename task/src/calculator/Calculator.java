@@ -1,5 +1,7 @@
 package calculator;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -39,12 +41,171 @@ public class Calculator {
             return;
         }
 
-        if (!checkExpression(expression)) {
-            System.out.println("Invalid expression");
-            return;
+//        if (!checkExpression(expression)) {
+//            System.out.println("Invalid expression");
+//            return;
+//        }
+
+        String postfixExpression = convertInfixToPostfix(expression);
+        calculate(postfixExpression);
+//        calculateNumbers(expression.split(" "));
+    }
+
+    private void calculate(String expression) {
+        Deque<Integer> result = new ArrayDeque<>();
+        Pattern alphabets = Pattern.compile("[a-zA-Z]+");
+
+        for (String str : expression.split(" ")) {
+            if (Patterns.variables.matcher(str).matches()) {
+                // if the incoming element is the name of a variable, push its value into the stack
+                if (alphabets.matcher(str).matches()) {
+                    result.offerLast(variables.get(str));
+                }
+                // if the incoming element is a number, push it into the stack
+                // (the whole number, not a single digit!)
+                else {
+                    result.offerLast(Integer.parseInt(str));
+                }
+            }
+            // If the incoming element is an operator, then pop twice to get two numbers and perform
+            // the operation; push the result on the stack
+            else {
+                int num2 = result.removeLast();
+                int num1 = result.removeLast();
+                if (str.equals("+")) {
+                    result.offerLast(num1 + num2);
+                    continue;
+                }
+                if (str.equals("-")) {
+                    result.offerLast(num1 - num2);
+                    continue;
+                }
+                if (str.equals("*")) {
+                    result.offerLast(num1 * num2);
+                    continue;
+                }
+                if (str.equals("/")) {
+                    result.offerLast(num1 / num2);
+                    continue;
+                }
+            }
         }
 
-        calculateNumbers(expression.split(" "));
+        System.out.println(result.removeLast());
+    }
+
+    private String convertInfixToPostfix(String expression) {
+        StringBuilder postfix = new StringBuilder();
+        Deque<String> postfixOperators = new ArrayDeque<>();
+
+        for (String str : expression.split(" ")) {
+            // add operands (numbers and variables) to the result (postfix notation) as they arrive
+            if (Patterns.variables.matcher(str).matches()) {
+                postfix.append(str);
+                postfix.append(" ");
+                continue;
+            }
+
+            str = sendBackOperator(str);
+
+            if (str == null) {
+                System.out.println("Invalid expression");
+                System.exit(1);
+            }
+            // if the stack is empty or contains a left parenthesis on top, push the incoming operator on the stack
+            if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
+                postfixOperators.offerLast(str);
+                continue;
+            }
+            // if the incoming element is a left parenthesis, push it on the stack
+            if (str.matches("[\\({\\[]")) {
+                postfixOperators.offerLast(str);
+                continue;
+            }
+            // if the incoming operator has higher precedence than the top of the stack, push it on the stack
+            if (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\*/]")) {
+                postfixOperators.offerLast(str);
+                continue;
+            }
+            // if the incoming element is a right parenthesis, pop the stack and add operators to the result until you
+            // see a left parenthesis. Discard the pair of parentheses
+            if (str.matches("[\\)}\\]]")) {
+                while (true) {
+                    if (postfixOperators.isEmpty()) {
+                        break;
+                    }
+                    if (postfixOperators.peekLast().matches("[\\({\\[]")) {
+                        postfixOperators.removeLast();
+                        break;
+                    }
+                    postfix.append(postfixOperators.removeLast());
+                    postfix.append(" ");
+                }
+            }
+            // if the incoming operator has lower or equal precedence than or to the top of the stack, pop the stack
+            // and add operators to the result until you see an operator that has a smaller precedence or a left
+            // parenthesis on the top of the stack; then add the incoming operator to the stack
+            while (true) {
+                if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
+                    postfixOperators.offerLast(str);
+                    break;
+                }
+                // equal precedence
+                if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\*/]") ||
+                        (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\+-]"))) {
+                    postfix.append(postfixOperators.removeLast());
+                    postfix.append(" ");
+                    continue;
+                }
+                // lower precedence
+                if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\+-]")) {
+                    postfix.append(postfixOperators.removeLast());
+                    postfix.append(" ");
+                    continue;
+                }
+            }
+        }
+
+        // add all the remaining operators
+        for (String operator : postfixOperators) {
+            postfix.append(operator);
+            postfix.append(" ");
+        }
+
+        // remove trailing spaces
+        return postfix.toString().trim();
+    }
+
+    private String sendBackOperator(String expression) {
+
+        Pattern addition = Pattern.compile("\\++");
+        Pattern subtraction = Pattern.compile("-+");
+        Pattern multiplication = Pattern.compile("\\*");
+        Pattern division = Pattern.compile("/");
+
+        if (multiplication.matcher(expression).matches()) {
+            return "*";
+        }
+
+        if (division.matcher(expression).matches()) {
+            return "/";
+        }
+
+        if (addition.matcher(expression).matches()) {
+            return "+";
+        }
+
+        if (subtraction.matcher(expression).matches()) {
+            int length = expression.length();
+            if (length > 1 && length % 2 == 0) {
+               return "+";
+            }
+            else {
+                return "-";
+            }
+        }
+
+        return null;
     }
 
     private boolean checkForVariableAssignment(String expression) {
@@ -123,7 +284,6 @@ public class Calculator {
 
         Pattern addition = Pattern.compile("\\++");
         Pattern subtraction = Pattern.compile("-+");
-        Pattern numbers = Pattern.compile("\\d+");
         Pattern alphabets = Pattern.compile("[a-zA-Z]+");
 
         Matcher matcher;

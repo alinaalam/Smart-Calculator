@@ -19,11 +19,11 @@ public class Main {
                     break;
                 }
                 else if (matcher.group(2).equals("help")) {
-                    System.out.println("The program calculates the sum and difference of numbers");
+                    System.out.println("The program calculates expressions");
                 }
             }
 
-            else if (input.contains("/")) {
+            else if (input.matches("/[a-zA-Z]+")) {
                 System.out.println("Unknown command");
             }
 
