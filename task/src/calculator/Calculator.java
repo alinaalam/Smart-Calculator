@@ -47,7 +47,10 @@ public class Calculator {
 //        }
 
         String postfixExpression = convertInfixToPostfix(expression);
-        calculate(postfixExpression);
+        if (postfixExpression != null) {
+            calculate(postfixExpression);
+        }
+
 //        calculateNumbers(expression.split(" "));
     }
 
@@ -95,44 +98,34 @@ public class Calculator {
     }
 
     private String convertInfixToPostfix(String expression) {
+
+        Matcher matcher = Patterns.expression.matcher(expression);
         StringBuilder postfix = new StringBuilder();
         Deque<String> postfixOperators = new ArrayDeque<>();
 
-        for (String str : expression.split(" ")) {
+        while (matcher.find()) {
+            if (matcher.group(1) == null && matcher.group(2) == null
+                    && matcher.group(3) == null && matcher.group(4) == null) {
+                continue;
+            }
             // add operands (numbers and variables) to the result (postfix notation) as they arrive
-            if (Patterns.variables.matcher(str).matches()) {
-                postfix.append(str);
+            if (matcher.group(1) != null) {
+                postfix.append(matcher.group(1));
                 postfix.append(" ");
-                continue;
             }
 
-            str = sendBackOperator(str);
-
-            if (str == null) {
-                System.out.println("Invalid expression");
-                System.exit(1);
-            }
-            // if the stack is empty or contains a left parenthesis on top, push the incoming operator on the stack
-            if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
-                postfixOperators.offerLast(str);
-                continue;
-            }
             // if the incoming element is a left parenthesis, push it on the stack
-            if (str.matches("[\\({\\[]")) {
-                postfixOperators.offerLast(str);
-                continue;
+            if (matcher.group(3) != null) {
+                postfixOperators.offerLast(matcher.group(3));
             }
-            // if the incoming operator has higher precedence than the top of the stack, push it on the stack
-            if (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\*/]")) {
-                postfixOperators.offerLast(str);
-                continue;
-            }
+
             // if the incoming element is a right parenthesis, pop the stack and add operators to the result until you
             // see a left parenthesis. Discard the pair of parentheses
-            if (str.matches("[\\)}\\]]")) {
+            if (matcher.group(4) != null) {
                 while (true) {
                     if (postfixOperators.isEmpty()) {
-                        break;
+                        System.out.println("Invalid expression");
+                        return null;
                     }
                     if (postfixOperators.peekLast().matches("[\\({\\[]")) {
                         postfixOperators.removeLast();
@@ -142,32 +135,59 @@ public class Calculator {
                     postfix.append(" ");
                 }
             }
-            // if the incoming operator has lower or equal precedence than or to the top of the stack, pop the stack
-            // and add operators to the result until you see an operator that has a smaller precedence or a left
-            // parenthesis on the top of the stack; then add the incoming operator to the stack
-            while (true) {
+
+            if (matcher.group(2) != null) {
+                String str = sendBackOperator(matcher.group(2));
+
+                if (str == null) {
+                    System.out.println("Invalid expression");
+                    return null;
+                }
+
+                // if the stack is empty or contains a left parenthesis on top, push the incoming operator on the stack
                 if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
                     postfixOperators.offerLast(str);
-                    break;
-                }
-                // equal precedence
-                if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\*/]") ||
-                        (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\+-]"))) {
-                    postfix.append(postfixOperators.removeLast());
-                    postfix.append(" ");
                     continue;
                 }
-                // lower precedence
-                if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\+-]")) {
-                    postfix.append(postfixOperators.removeLast());
-                    postfix.append(" ");
+
+                // if the incoming operator has higher precedence than the top of the stack, push it on the stack
+                if (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\*/]")) {
+                    postfixOperators.offerLast(str);
                     continue;
+                }
+
+                // if the incoming operator has lower or equal precedence than or to the top of the stack, pop the stack
+                // and add operators to the result until you see an operator that has a smaller precedence or a left
+                // parenthesis on the top of the stack; then add the incoming operator to the stack
+                while (true) {
+                    if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
+                        postfixOperators.offerLast(str);
+                        break;
+                    }
+                    // equal precedence
+                    if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\*/]") ||
+                            (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\+-]"))) {
+                        postfix.append(postfixOperators.removeLast());
+                        postfix.append(" ");
+                        continue;
+                    }
+                    // lower precedence
+                    if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\+-]")) {
+                        postfix.append(postfixOperators.removeLast());
+                        postfix.append(" ");
+                        continue;
+                    }
                 }
             }
         }
 
         // add all the remaining operators
-        for (String operator : postfixOperators) {
+        while (!postfixOperators.isEmpty()) {
+            String operator = postfixOperators.removeLast();
+            if (operator.matches("[\\({\\[\\)}\\]]")) {
+                System.out.println("Invalid expression");
+                return null;
+            }
             postfix.append(operator);
             postfix.append(" ");
         }

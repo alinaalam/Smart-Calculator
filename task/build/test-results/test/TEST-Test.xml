@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Test" tests="1" skipped="0" failures="1" errors="0" timestamp="2019-12-16T22:23:20" hostname="DE-MAC-104.local" time="0.378">
+<testsuite name="Test" tests="1" skipped="0" failures="1" errors="0" timestamp="2019-12-17T20:46:25" hostname="DE-MAC-104.local" time="0.371">
   <properties/>
-  <testcase name="start" classname="Test" time="0.378">
-    <failure message="java.lang.AssertionError: Wrong answer in test #3&#10;&#10;Below you can see the output of your program during this test&#10;Notice, that '&gt;' symbol means the start of the input:&#10;&#10;&gt;3 + 8 * ((4 + 3) * 2 + 1) - 6 / (2 + 1)&#10;Invalid expression" type="java.lang.AssertionError">java.lang.AssertionError: Wrong answer in test #3
+  <testcase name="start" classname="Test" time="0.371">
+    <failure message="java.lang.AssertionError: Wrong answer in test #5&#10;&#10;Below you can see the output of your program during this test&#10;Notice, that '&gt;' symbol means the start of the input:&#10;&#10;&gt;a = 4&#10;&gt;b = 5&#10;&gt;c = 6&#10;&gt;a*2+b*3+c*(2+3)&#10;38&#10;&gt;/exit&#10;Bye!" type="java.lang.AssertionError">java.lang.AssertionError: Wrong answer in test #5
 
 Below you can see the output of your program during this test
 Notice, that '&gt;' symbol means the start of the input:
 
-&gt;3 + 8 * ((4 + 3) * 2 + 1) - 6 / (2 + 1)
-Invalid expression
+&gt;a = 4
+&gt;b = 5
+&gt;c = 6
+&gt;a*2+b*3+c*(2+3)
+38
+&gt;/exit
+Bye!
 	at org.junit.Assert.fail(Assert.java:88)
 	at org.hyperskill.hstest.v6.stage.BaseStageTest.start(BaseStageTest.java:172)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -85,7 +90,28 @@ Bye!
 ?[1;31m
 Start test 3?[0m
 >3 + 8 * ((4 + 3) * 2 + 1) - 6 / (2 + 1)
+121
+>/exit
+Bye!
+?[1;31m
+Start test 4?[0m
+>8 * 3 + 12 * (4 - 2)
+48
+>4 * (2 + 3
 Invalid expression
+>4 + 3)
+Invalid expression
+>/exit
+Bye!
+?[1;31m
+Start test 5?[0m
+>a = 4
+>b = 5
+>c = 6
+>a*2+b*3+c*(2+3)
+38
+>/exit
+Bye!
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
