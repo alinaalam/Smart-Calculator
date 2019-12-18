@@ -1,5 +1,6 @@
 package calculator;
 
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -8,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Calculator {
-    private Map<String, Integer> variables;
+    private Map<String, BigInteger> variables;
 
     public Calculator() {
         this.variables = new HashMap<>();
@@ -48,7 +49,7 @@ public class Calculator {
     }
 
     private void calculate(String expression) {
-        Deque<Integer> result = new ArrayDeque<>();
+        Deque<BigInteger> result = new ArrayDeque<>();
         Pattern alphabets = Pattern.compile("[a-zA-Z]+");
 
         for (String str : expression.split(" ")) {
@@ -60,28 +61,28 @@ public class Calculator {
                 // if the incoming element is a number, push it into the stack
                 // (the whole number, not a single digit!)
                 else {
-                    result.offerLast(Integer.parseInt(str));
+                    result.offerLast(new BigInteger(str));
                 }
             }
             // If the incoming element is an operator, then pop twice to get two numbers and perform
             // the operation; push the result on the stack
             else {
-                int num2 = result.removeLast();
-                int num1 = result.removeLast();
+                BigInteger num2 = result.removeLast();
+                BigInteger num1 = result.removeLast();
                 if (str.equals("+")) {
-                    result.offerLast(num1 + num2);
+                    result.offerLast(num1.add(num2));
                     continue;
                 }
                 if (str.equals("-")) {
-                    result.offerLast(num1 - num2);
+                    result.offerLast(num1.subtract(num2));
                     continue;
                 }
                 if (str.equals("*")) {
-                    result.offerLast(num1 * num2);
+                    result.offerLast(num1.multiply(num2));
                     continue;
                 }
                 if (str.equals("/")) {
-                    result.offerLast(num1 / num2);
+                    result.offerLast(num1.divide(num2));
                     continue;
                 }
             }
@@ -225,10 +226,10 @@ public class Calculator {
 
         if (matcher.matches()) {
             String variable = matcher.group(1);
-            int value;
+            BigInteger value;
 
             try {
-                value = Integer.parseInt(matcher.group(2));
+                value = new BigInteger(matcher.group(2));
             } catch (NumberFormatException e) {
                 String var = matcher.group(2);
                 if (variables.containsKey(var)) {
@@ -239,7 +240,7 @@ public class Calculator {
                     return true;
                 }
             }
-            variables.getOrDefault(variable, 0);
+            variables.getOrDefault(variable, BigInteger.ZERO);
             variables.put(variable, value);
             return true;
         }
