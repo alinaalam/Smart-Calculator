@@ -41,17 +41,10 @@ public class Calculator {
             return;
         }
 
-//        if (!checkExpression(expression)) {
-//            System.out.println("Invalid expression");
-//            return;
-//        }
-
         String postfixExpression = convertInfixToPostfix(expression);
         if (postfixExpression != null) {
             calculate(postfixExpression);
         }
-
-//        calculateNumbers(expression.split(" "));
     }
 
     private void calculate(String expression) {
@@ -114,6 +107,48 @@ public class Calculator {
                 postfix.append(" ");
             }
 
+            if (matcher.group(2) != null) {
+                String str = sendBackOperator(matcher.group(2));
+
+                if (str == null) {
+                    System.out.println("Invalid expression");
+                    return null;
+                }
+
+                // if the stack is empty or contains a left parenthesis on top, push the incoming operator on the stack
+                if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
+                    postfixOperators.offerLast(str);
+                }
+
+                // if the incoming operator has higher precedence than the top of the stack, push it on the stack
+                else if (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\*/]")) {
+                    postfixOperators.offerLast(str);
+                }
+
+                // if the incoming operator has lower or equal precedence than or to the top of the stack, pop the stack
+                // and add operators to the result until you see an operator that has a smaller precedence or a left
+                // parenthesis on the top of the stack; then add the incoming operator to the stack
+                else {
+                    while (true) {
+                        if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
+                            postfixOperators.offerLast(str);
+                            break;
+                        }
+                        // equal precedence
+                        if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\*/]") ||
+                                (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\+-]"))) {
+                            postfix.append(postfixOperators.removeLast());
+                            postfix.append(" ");
+                        }
+                        // lower precedence
+                        else if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\+-]")) {
+                            postfix.append(postfixOperators.removeLast());
+                            postfix.append(" ");
+                        }
+                    }
+                }
+            }
+
             // if the incoming element is a left parenthesis, push it on the stack
             if (matcher.group(3) != null) {
                 postfixOperators.offerLast(matcher.group(3));
@@ -133,50 +168,6 @@ public class Calculator {
                     }
                     postfix.append(postfixOperators.removeLast());
                     postfix.append(" ");
-                }
-            }
-
-            if (matcher.group(2) != null) {
-                String str = sendBackOperator(matcher.group(2));
-
-                if (str == null) {
-                    System.out.println("Invalid expression");
-                    return null;
-                }
-
-                // if the stack is empty or contains a left parenthesis on top, push the incoming operator on the stack
-                if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
-                    postfixOperators.offerLast(str);
-                    continue;
-                }
-
-                // if the incoming operator has higher precedence than the top of the stack, push it on the stack
-                if (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\*/]")) {
-                    postfixOperators.offerLast(str);
-                    continue;
-                }
-
-                // if the incoming operator has lower or equal precedence than or to the top of the stack, pop the stack
-                // and add operators to the result until you see an operator that has a smaller precedence or a left
-                // parenthesis on the top of the stack; then add the incoming operator to the stack
-                while (true) {
-                    if (postfixOperators.isEmpty() || postfixOperators.peekLast().matches("[\\({\\[]")) {
-                        postfixOperators.offerLast(str);
-                        break;
-                    }
-                    // equal precedence
-                    if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\*/]") ||
-                            (postfixOperators.peekLast().matches("[\\+-]") && str.matches("[\\+-]"))) {
-                        postfix.append(postfixOperators.removeLast());
-                        postfix.append(" ");
-                        continue;
-                    }
-                    // lower precedence
-                    if (postfixOperators.peekLast().matches("[\\*/]") && str.matches("[\\+-]")) {
-                        postfix.append(postfixOperators.removeLast());
-                        postfix.append(" ");
-                        continue;
-                    }
                 }
             }
         }
@@ -270,89 +261,5 @@ public class Calculator {
         }
 
         return false;
-    }
-
-    /*
-    the operators must be at least group numbers - 1 or more
-    which means each group of digits must have operators in b/w them
-     */
-    private boolean checkExpression(String expression) {
-        Pattern numbers = Pattern.compile("([\\w]+)");
-        Matcher matcher = numbers.matcher(expression);
-
-        int numbersCount = 0;
-
-        while (matcher.find()) {
-            numbersCount++;
-        }
-
-        Pattern operators = Pattern.compile("[\\w ]+([\\+-]+)");
-        matcher = operators.matcher(expression);
-
-        int operatorsCount = 0;
-
-        while (matcher.find()) {
-            operatorsCount++;
-        }
-
-        return (operatorsCount >= numbersCount - 1);
-    }
-
-    private void calculateNumbers(String[] input) {
-        int result = 0;
-        String op = "";
-
-        Pattern addition = Pattern.compile("\\++");
-        Pattern subtraction = Pattern.compile("-+");
-        Pattern alphabets = Pattern.compile("[a-zA-Z]+");
-
-        Matcher matcher;
-
-        try {
-            for (int i = 0; i < input.length; i++) {
-                matcher = addition.matcher(input[i]);
-                if (matcher.matches()) {
-                    op = "+";
-                    continue;
-                }
-
-                matcher = subtraction.matcher(input[i]);
-                if (matcher.matches()) {
-                    int length = input[i].split("").length;
-                    if (length > 1 && length % 2 == 0) {
-                        op = "+";
-                    }
-                    else {
-                        op = "-";
-                    }
-                    continue;
-                }
-                // then it is a number or a variable
-                Matcher m = alphabets.matcher(input[i]);
-                int value;
-
-                if (m.matches()) {
-                    value = variables.get(input[i]);
-                }
-                else {
-                    value = Integer.parseInt(input[i]);
-                }
-
-                if (op.equals("+")) {
-                    result += value;
-                }
-                else if (op.equals("-")) {
-                    result -= value;
-                }
-                else {
-                    result = value;
-                }
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid expression");
-            return;
-        }
-
-        System.out.println(result);
     }
 }
